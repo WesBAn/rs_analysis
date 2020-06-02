@@ -18,6 +18,9 @@ def fractal_analysis(country_data):
     plot_utils.plot_piecewise(country_data.data)
 
     result_points = rs_get_points(country_data.data)
+    if len(result_points) == 0:
+        return
+
     H = get_herst(result_points)
     print('H = ', H)
 
@@ -32,12 +35,13 @@ def fractal_analysis(country_data):
 def rs_get_points(data: np.array):
     n = len(data)
     x = np.log(np.array(range(1, n + 1)))
-    rs = np.log(np.array(
+    rs_unfiltered = np.log(np.array(
         [
             get_rs(data[:i])
             for i in range(3, n + 1)
         ]
     ))
+    rs = np.array(list(filter(lambda elem: not np.isnan(elem), rs_unfiltered)))
     result = np.array([
         (x[i], rs[i])
         for i in range(len(rs))
@@ -60,7 +64,10 @@ def get_rs(points: np.array):
         for i in range(1, n + 1)
     ]
     R = np.max(delta_sum) - np.min(delta_sum)
-    S = np.sum(np.square(h - h_average)) / n
+    S = np.sqrt(np.sum(np.square(h - h_average)) / n)
+    if S == 0:
+        return float('nan')
+    
     return R / S
 
 
